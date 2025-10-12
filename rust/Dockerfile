@@ -1,4 +1,4 @@
-FROM fedora:44@sha256:37be4c0383aecf0c0e6f774bc062d31b1ff410848fc15ae088df64bdd3218661
+FROM fedora:42
 
 COPY --chmod=644 config.toml /.cargo/config.toml
 
@@ -37,7 +37,6 @@ RUN dnf update -y && \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-
 RUN export CARGO_HOME=/usr/local && export RUSTUP_HOME=/usr/local \
     && rustup-init -y \
     && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
@@ -46,7 +45,6 @@ RUN export CARGO_HOME=/usr/local && export RUSTUP_HOME=/usr/local \
 
 USER ${USERNAME}
 WORKDIR /workspace
-
 
 SHELL ["/bin/bash", "-c"]
 
