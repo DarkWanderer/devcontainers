@@ -1,4 +1,4 @@
-FROM fedora:42
+FROM fedora:44@sha256:37be4c0383aecf0c0e6f774bc062d31b1ff410848fc15ae088df64bdd3218661
 
 COPY --chmod=644 config.toml /.cargo/config.toml
 
