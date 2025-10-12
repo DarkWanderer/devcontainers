@@ -1,5 +1,7 @@
 FROM fedora:44@sha256:37be4c0383aecf0c0e6f774bc062d31b1ff410848fc15ae088df64bdd3218661
 
+COPY --chmod=644 config.toml /.cargo/config.toml
+
 ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
@@ -16,7 +18,6 @@ RUN dnf update -y && \
         clang \
         cmake \
         curl \
-        dotnet-sdk-9.0 \
         gcc \
         gh \
         git \
@@ -36,17 +37,16 @@ RUN dnf update -y && \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
+
+RUN export CARGO_HOME=/usr/local && export RUSTUP_HOME=/usr/local \
+    && rustup-init -y \
+    && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
+    && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated \
+    && rm -rf /usr/local/registry
+
 USER ${USERNAME}
 WORKDIR /workspace
 
-RUN rustup-init -y --no-modify-path --profile minimal \
-    && echo 'source $HOME/.cargo/env' >> /home/${USERNAME}/.bashrc \
-    && source /home/${USERNAME}/.bashrc \
-    && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
-    && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated \
-    && rm -rf ~/.cargo/registry
-
-COPY --chown=${USER_UID}:${USER_GID} config.toml /home/${USERNAME}/.cargo/config.toml
 
 SHELL ["/bin/bash", "-c"]
 
