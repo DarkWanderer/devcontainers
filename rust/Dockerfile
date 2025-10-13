@@ -1,6 +1,7 @@
 FROM fedora:42@sha256:0c5ab5380e63cb322552d624d2c78b835f11b526cfd32e1d6f687d0c245f38ce
 
-COPY --chmod=644 config.toml /.cargo/config.toml
+ENV CARGO_HOME=/usr/local RUSTUP_HOME=/usr/local
+COPY --chmod=644 config.toml /usr/local/config.toml
 
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -13,7 +14,7 @@ RUN useradd --uid ${USER_UID} -m ${USERNAME} \
     && chown ${USERNAME}:${USERNAME} /workspace
 
 RUN dnf update -y && \
-    dnf install -y \
+    dnf install -y --setopt=install_weak_deps=False \
         ca-certificates \
         clang \
         cmake \
@@ -37,9 +38,7 @@ RUN dnf update -y && \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-RUN export CARGO_HOME=/usr/local && export RUSTUP_HOME=/usr/local \
-    && rustup-init -y \
-    && rustup default stable \
+RUN rustup-init -y \
     && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
     && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated \
     && rm -rf /usr/local/registry
