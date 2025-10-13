@@ -39,6 +39,7 @@ RUN dnf update -y && \
 
 RUN export CARGO_HOME=/usr/local && export RUSTUP_HOME=/usr/local \
     && rustup-init -y \
+    && rustup default stable \
     && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
     && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated \
     && rm -rf /usr/local/registry
