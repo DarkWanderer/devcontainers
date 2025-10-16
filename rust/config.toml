@@ -3,7 +3,7 @@ rustflags = [
     "-W",
     "unused-crate-dependencies",
     "-C",
-    "link-arg=-fuse-ld=lld",
+    "link-arg=-fuse-ld=mold",
     "-C",
     "target-cpu=x86-64-v2",
 ]
