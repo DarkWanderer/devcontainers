@@ -1,7 +1,5 @@
 [build]
 rustflags = [
-    "-W",
-    "unused-crate-dependencies",
     "-C",
     "link-arg=-fuse-ld=mold",
     "-C",
