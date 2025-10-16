@@ -40,7 +40,7 @@ RUN dnf update -y && \
 
 RUN rustup-init -y \
     && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
-    && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated \
+    && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated clippy-sarif sarif-fmt \
     && rm -rf /usr/local/registry
 
 USER ${USERNAME}
