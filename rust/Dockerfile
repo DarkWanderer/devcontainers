@@ -24,6 +24,7 @@ RUN dnf update -y && \
         jq \
         lld \
         make \
+        mold \
         nodejs \
         npm \
         openssl-devel \
