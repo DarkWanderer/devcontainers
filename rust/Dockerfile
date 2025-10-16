@@ -10,8 +10,7 @@ ARG USER_GID=${USER_UID}
 RUN useradd --uid ${USER_UID} -m ${USERNAME} \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME} \
-    && mkdir /workspace \
-    && chown ${USERNAME}:${USERNAME} /workspace
+    && mkdir /workspace && chown ${USERNAME}:${USERNAME} /workspace
 
 RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
@@ -43,7 +42,6 @@ RUN rustup-init -y \
     && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated clippy-sarif sarif-fmt \
     && rm -rf /usr/local/registry
 
-USER ${USERNAME}
 WORKDIR /workspace
 
 SHELL ["/bin/bash", "-c"]
