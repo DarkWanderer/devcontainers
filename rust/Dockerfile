@@ -9,8 +9,7 @@ ARG USER_GID=${USER_UID}
 
 RUN useradd --uid ${USER_UID} -m ${USERNAME} \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${USERNAME} \
-    && chmod 0440 /etc/sudoers.d/${USERNAME} \
-    && mkdir /workspace && chown ${USERNAME}:${USERNAME} /workspace
+    && chmod 0440 /etc/sudoers.d/${USERNAME}
 
 RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
@@ -39,9 +38,11 @@ RUN dnf update -y && \
     && rm -rf /var/cache/dnf
 
 RUN rustup-init -y \
-    && rustup component add llvm-tools-preview rust-analyzer clippy rustfmt \
+    && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt \
     && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated clippy-sarif sarif-fmt \
-    && rm -rf /usr/local/registry
+    && rm -rf /usr/local/registry \
+    && mkdir -p /usr/local/registry \
+    && chmod 777 /usr/local/registry
 
 WORKDIR /workspace
 
