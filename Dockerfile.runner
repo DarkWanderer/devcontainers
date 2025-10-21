@@ -1,0 +1,39 @@
+FROM ghcr.io/actions/actions-runner:latest
+
+USER root
+
+ENV CARGO_HOME=/usr/local RUSTUP_HOME=/usr/local
+COPY --chmod=644 config.toml /usr/local/config.toml
+
+RUN add-apt-repository -y ppa:dotnet/backports && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        clang \
+        cmake \
+        curl \
+        dotnet-sdk-9.0 \
+        gcc \
+        gh \
+        git \
+        jq \
+        lld \
+        make \
+        mold \
+        nodejs \
+        npm \
+        libssl-dev \
+        pkg-config \
+        protobuf-compiler \
+        sudo \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt \
+    && cargo install --locked cargo-audit cargo-llvm-cov cargo-outdated clippy-sarif sarif-fmt \
+    && rm -rf /usr/local/registry \
+    && mkdir -p /usr/local/registry \
+    && chmod 777 /usr/local/registry
+
+USER runner
