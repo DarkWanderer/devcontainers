@@ -1,29 +1,35 @@
-FROM ghcr.io/actions/actions-runner:latest@sha256:75599cd393958a52142f489a160123f5b9b21605a40609696deb13d49867d53f
+FROM fedora:42
 
-USER root
-
-RUN add-apt-repository -y ppa:dotnet/backports && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Install dependencies
+RUN dnf install -y \
         ca-certificates \
-        clang \
-        cmake \
-        curl \
-        dotnet-sdk-9.0 \
-        gcc \
-        gh \
-        git \
-        jq \
-        lld \
-        make \
-        mold \
-        nodejs \
-        npm \
-        libssl-dev \
-        pkg-config \
+        cargo rust \
+        cmake make clang gcc lld mold \
+        nodejs npm \
         protobuf-compiler \
-        sudo \
-        wget \
-    && rm -rf /var/lib/apt/lists/*
+        dotnet-sdk-9.0 \
+        gh jq git pkg-config \
+        openssl-devel \
+        shadow-utils \
+        sudo curl wget which \
+    && dnf clean all
+
+# Create a user to run the runner
+RUN useradd -m -s /bin/bash -d /runner runner && \
+    usermod -aG wheel runner && \
+    echo "runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+WORKDIR /runner
+
+# Fetch the latest runner version and download it
+RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/v//') && \
+    RUNNER_ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \
+    curl -o actions-runner-linux.tar.gz -L \
+    "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" && \
+    tar xzf actions-runner-linux.tar.gz && \
+    rm actions-runner-linux.tar.gz && \
+    chown -R runner:runner /runner
 
 USER runner
+
+CMD ["./run.sh"]
