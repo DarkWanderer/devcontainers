@@ -1,4 +1,4 @@
-name: Rust
+name: Images
 
 on:
   push:
@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  rust:
+  devcontainer:
+    name: Devcontainer
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,11 +36,12 @@ jobs:
       - name: Build/Push
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
-          file: Dockerfile.rust
+          file: Dockerfile.devcontainer
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: docker.io/${{ secrets.DOCKER_USERNAME }}/devcontainer:rust
+          tags: docker.io/${{ secrets.DOCKER_USERNAME }}/devcontainer:latest
 
   runner:
+    name: Runner
     runs-on: ubuntu-latest
     permissions:
       contents: read
