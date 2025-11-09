@@ -23,6 +23,7 @@ RUN dnf update -y && \
         git \
         jq \
         lld \
+        lldb \
         make \
         mold \
         nodejs \
