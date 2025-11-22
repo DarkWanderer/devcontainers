@@ -12,11 +12,12 @@ RUN dnf install -y \
         openssl-devel \
         shadow-utils \
         sudo curl wget which \
+        docker \
     && dnf clean all
 
 # Create a user to run the runner
 RUN useradd -m -s /bin/bash -d /runner runner && \
-    usermod -aG wheel runner && \
+    usermod -aG wheel,docker runner && \
     echo "runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 WORKDIR /runner
@@ -30,6 +31,28 @@ RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/release
     rm actions-runner-linux.tar.gz && \
     chown -R runner:runner /runner
 
+# Create entrypoint script to start Docker daemon
+RUN echo '#!/bin/bash' > /runner/entrypoint.sh && \
+    echo 'set -e' >> /runner/entrypoint.sh && \
+    echo '' >> /runner/entrypoint.sh && \
+    echo '# Start Docker daemon in the background' >> /runner/entrypoint.sh && \
+    echo 'sudo dockerd --host=unix:///var/run/docker.sock > /tmp/dockerd.log 2>&1 &' >> /runner/entrypoint.sh && \
+    echo '' >> /runner/entrypoint.sh && \
+    echo '# Wait for Docker to be ready' >> /runner/entrypoint.sh && \
+    echo 'echo "Waiting for Docker daemon to start..."' >> /runner/entrypoint.sh && \
+    echo 'for i in {1..30}; do' >> /runner/entrypoint.sh && \
+    echo '    if docker info > /dev/null 2>&1; then' >> /runner/entrypoint.sh && \
+    echo '        echo "Docker daemon is ready"' >> /runner/entrypoint.sh && \
+    echo '        break' >> /runner/entrypoint.sh && \
+    echo '    fi' >> /runner/entrypoint.sh && \
+    echo '    sleep 1' >> /runner/entrypoint.sh && \
+    echo 'done' >> /runner/entrypoint.sh && \
+    echo '' >> /runner/entrypoint.sh && \
+    echo '# Run the GitHub Actions runner' >> /runner/entrypoint.sh && \
+    echo 'exec ./run.sh' >> /runner/entrypoint.sh && \
+    chmod +x /runner/entrypoint.sh && \
+    chown runner:runner /runner/entrypoint.sh
+
 USER runner
 
-CMD ["./run.sh"]
+CMD ["./entrypoint.sh"]
