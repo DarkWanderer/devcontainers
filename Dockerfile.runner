@@ -4,6 +4,7 @@ LABEL maintainer="Oleg V. Kozlyuk <elquentaro@gmail.com>"
 # Install dependencies
 RUN dnf install -y \
         ca-certificates \
+        catatonit \
         cargo rust \
         cmake make clang gcc lld mold \
         nodejs npm \
