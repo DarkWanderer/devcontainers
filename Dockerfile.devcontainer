@@ -1,4 +1,4 @@
-FROM fedora:43
+FROM fedora:43@sha256:6cd815d862109208adf6040ea13391fe6aeb87a9dc80735c2ab07083fdf5e03a
 LABEL maintainer="Oleg V. Kozlyuk <elquentaro@gmail.com>"
 LABEL repository="https://github.com/DarkWanderer/devcontainers"
 
