@@ -38,6 +38,7 @@ RUN dnf update -y && \
         rustup \
         shadow-utils \
         sudo \
+        tini \
         wget \
         which \
     && dnf clean all \
