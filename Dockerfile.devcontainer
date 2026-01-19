@@ -1,9 +1,11 @@
-FROM fedora:44@sha256:64de49837325632232088e59c20518565a9d657095f9f3c2fa6033a42fb1412b
+FROM fedora:43
 LABEL maintainer="Oleg V. Kozlyuk <elquentaro@gmail.com>"
 LABEL repository="https://github.com/DarkWanderer/devcontainers"
 
-ENV CARGO_HOME=/usr/local RUSTUP_HOME=/usr/local
+ENV CARGO_HOME=/usr/local RUSTUP_HOME=/usr/local CARGO_TARGET_DIR=/target
 COPY --chmod=644 config.toml /usr/local/config.toml
+
+VOLUME /target
 
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -15,43 +17,50 @@ RUN useradd --uid ${USER_UID} -m ${USERNAME} \
 
 RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
-        ca-certificates \
-        chezmoi \
-        clang \
-        cmake \
-        curl \
-        dotnet-sdk-9.0 \
-        gcc \
-        gh \
-        git \
-        jq \
-        lld \
-        lldb \
-        make \
-        mold \
-        nodejs \
-        npm \
-        openssl-devel \
-        pkg-config \
-        procps-ng \
-        protobuf-compiler \
-        rustup \
-        shadow-utils \
-        sudo \
-        tini \
-        wget \
-        which \
+    ca-certificates \
+    chezmoi \
+    clang \
+    cmake \
+    curl \
+    dotnet-sdk-9.0 \
+    dotnet-sdk-10.0 \
+    gcc \
+    gh \
+    git \
+    jq \
+    just \
+    lld \
+    lldb \
+    make \
+    mold \
+    nodejs \
+    npm \
+    openssl-devel \
+    pkg-config \
+    procps-ng \
+    protobuf-compiler \
+    rustup \
+    sccache \
+    shadow-utils \
+    sudo \
+    tini \
+    wget \
+    which \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
 RUN rustup-init -y \
-    && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt \
-    && cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort cargo-outdated clippy-sarif sarif-fmt \
+    && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt
+
+RUN cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort cargo-outdated cargo-sort clippy-sarif sarif-fmt \
     && rm -rf /usr/local/registry \
     && mkdir -p /usr/local/registry \
-    && chmod 777 /usr/local/registry
+    && chmod 777 /usr/local/registry \
+    && chmod 777 /target
 
 WORKDIR /workspace
+
+ENTRYPOINT [ "/usr/sbin/tini", "--" ]
 
 SHELL ["/bin/bash", "-c"]
 

@@ -3,17 +3,17 @@ LABEL maintainer="Oleg V. Kozlyuk <elquentaro@gmail.com>"
 
 # Install dependencies
 RUN dnf install -y \
-        ca-certificates \
-        catatonit \
-        cargo rust \
-        cmake make clang gcc lld mold \
-        nodejs npm \
-        protobuf-compiler \
-        dotnet-sdk-9.0 \
-        gh jq git pkg-config \
-        openssl-devel \
-        shadow-utils \
-        sudo curl wget which \
+    ca-certificates \
+    catatonit tini \
+    cargo rust just sccache \
+    cmake make clang gcc lld mold \
+    nodejs npm \
+    protobuf-compiler \
+    dotnet-sdk-9.0 dotnet-sdk-10.0 \
+    gh jq git pkg-config \
+    openssl-devel \
+    shadow-utils \
+    sudo curl wget which \
     && dnf clean all
 
 # Create a user to run the runner
@@ -35,4 +35,3 @@ RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/release
 USER runner
 COPY entrypoint.sh .
 ENTRYPOINT ["/runner/entrypoint.sh"]
-
