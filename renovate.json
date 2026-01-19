@@ -1,3 +1,9 @@
 {
-  "extends": ["github>voron-software/.github:renovate.json5"]
+  "extends": ["github>voron-software/.github:renovate.json5"],
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "automerge": false
+    }
+  ]
 }
