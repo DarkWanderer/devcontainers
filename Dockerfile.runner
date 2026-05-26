@@ -21,6 +21,8 @@ RUN useradd -m -s /bin/bash -d /runner runner && \
     usermod -aG wheel runner && \
     echo "runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+RUN clang --version && clang++ --version
+
 WORKDIR /runner
 
 # Fetch the latest runner version and download it

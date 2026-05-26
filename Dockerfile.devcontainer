@@ -49,6 +49,8 @@ RUN dnf update -y && \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
+RUN clang --version && clang++ --version
+
 RUN rustup-init -y \
     && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt
 
