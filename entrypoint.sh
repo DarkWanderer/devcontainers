@@ -12,6 +12,10 @@ then
     exit 1
 fi
 
-/runner/config.sh --name docker-runner --ephemeral --replace --unattended --url https://github.com/$GITHUB_ORG --token $REGISTRATION_TOKEN
+# libkrun's microVM guest runs this entrypoint as root (UID 0); the runner
+# refuses to start as root unless this is set.
+export RUNNER_ALLOW_RUNASROOT=1
+
+/runner/config.sh --name "${RUNNER_NAME:-docker-runner}" --ephemeral --replace --unattended --url https://github.com/$GITHUB_ORG --token $REGISTRATION_TOKEN
 /runner/run.sh
 
