@@ -17,5 +17,12 @@ fi
 export RUNNER_ALLOW_RUNASROOT=1
 
 /runner/config.sh --name "${RUNNER_NAME:-docker-runner}" --ephemeral --replace --unattended --url https://github.com/$GITHUB_ORG --token $REGISTRATION_TOKEN
-/runner/run.sh
+
+# This script is PID 1 in the libkrun guest. A bash PID 1 does not forward
+# SIGTERM to its children, so on `podman stop` run.sh / Runner.Listener never
+# see the signal, are SIGKILLed after the stop timeout, and the runner stays
+# registered on GitHub ("A session for this runner already exists" on restart).
+# exec into tini (-g forwards signals to the whole child process group) so the
+# listener receives SIGTERM and deregisters cleanly.
+exec tini -g -- /runner/run.sh
 
