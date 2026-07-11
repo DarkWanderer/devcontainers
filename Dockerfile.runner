@@ -5,7 +5,7 @@ LABEL maintainer="Oleg V. Kozlyuk <elquentaro@gmail.com>"
 RUN dnf install -y \
     ca-certificates \
     catatonit tini \
-    cargo rust just sccache \
+    cargo rust just sccache rustup \
     cmake make clang gcc lld mold \
     nodejs npm \
     protobuf-compiler \
