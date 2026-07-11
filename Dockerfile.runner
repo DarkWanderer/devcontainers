@@ -14,7 +14,16 @@ RUN dnf install -y \
     openssl-devel \
     shadow-utils \
     sudo curl wget which \
+    podman fuse-overlayfs crun podman-docker \
     && dnf clean all
+
+# Nested containers: this runner has no dockerd (libkrunfw's guest kernel lacks the
+# overlay/bridge/netfilter modules dockerd needs). Podman configured for host networking
+# and fuse-overlayfs storage instead; podman-docker shims `docker` -> `podman` for jobs
+# that call the docker CLI.
+COPY containers.conf /etc/containers/containers.conf
+COPY storage.conf /etc/containers/storage.conf
+COPY nodocker /etc/containers/nodocker
 
 # Create a user to run the runner
 RUN useradd -m -s /bin/bash -d /runner runner && \
