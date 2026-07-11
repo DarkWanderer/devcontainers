@@ -16,15 +16,20 @@ fi
 # refuses to start as root unless this is set.
 export RUNNER_ALLOW_RUNASROOT=1
 
-# Nested podman/docker needs real chown(2) when extracting multi-UID image layers.
-# The guest's shared rootfs comes in over virtiofs, which never allows chown - not
-# even to guest root, not even a no-op chown to a file's existing owner - because
-# virtiofsd enforces real host-side permissions and isn't itself privileged. tmpfs is
-# a real, guest-kernel-native filesystem that doesn't have this restriction, so shadow
-# every path a container engine needs to chown into with one. (/var/lib/containers is
-# podman's default root storage; /run holds its runtime/lock state; /var/cache and
-# /var/tmp are buildah's build-time scratch dirs.)
-for path in /var/lib/containers /run /var/cache /var/tmp; do
+# Nested podman/docker needs real chown(2) when extracting multi-UID image layers,
+# and plain writes under /etc also fail. The guest's shared rootfs comes in over
+# virtiofs, which allows neither - not even a no-op chown to a file's existing owner -
+# because virtiofsd enforces real host-side permissions and isn't itself privileged.
+# tmpfs is a real, guest-kernel-native filesystem that doesn't have either restriction,
+# so shadow every path a container engine needs to write into with one.
+# (/var/lib/containers is podman's default root storage; /run holds its runtime/lock
+# state; /var/cache and /var/tmp are buildah's build-time scratch dirs;
+# /etc/containers/networks is where `docker network create` - which the actions
+# runner issues automatically for jobs with service containers - writes network
+# definitions. The resulting network still can't route between containers, since the
+# guest kernel has no bridge module, but at least the create call itself succeeds
+# instead of hard-failing the job before any step runs.)
+for path in /var/lib/containers /run /var/cache /var/tmp /etc/containers/networks; do
     mount -t tmpfs tmpfs "$path"
 done
 
