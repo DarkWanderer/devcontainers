@@ -1,0 +1,3 @@
+ignored:
+  # Scheduled builds intentionally resolve current Fedora package updates.
+  - DL3041

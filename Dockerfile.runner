@@ -9,7 +9,7 @@ RUN dnf install -y \
     cmake make clang gcc lld mold \
     nodejs npm \
     protobuf-compiler \
-    dotnet-sdk-9.0 dotnet-sdk-10.0 \
+    dotnet-sdk-10.0 \
     gh jq git pkg-config \
     openssl-devel \
     shadow-utils \
@@ -26,13 +26,15 @@ COPY storage.conf /etc/containers/storage.conf
 COPY nodocker /etc/containers/nodocker
 
 # Create a user to run the runner
-RUN useradd -m -s /bin/bash -d /runner runner && \
+RUN useradd --uid 1000 -m -s /bin/bash -d /runner runner && \
     usermod -aG wheel runner && \
-    echo "runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "runner ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/runner && \
+    chmod 0440 /etc/sudoers.d/runner
 
 WORKDIR /runner
 
 # Fetch the latest runner version and download it
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/v//') && \
     RUNNER_ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \
     curl -o actions-runner-linux.tar.gz -L \
@@ -41,6 +43,6 @@ RUN RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/release
     rm actions-runner-linux.tar.gz && \
     chown -R runner:runner /runner
 
-USER runner
+USER 1000
 COPY entrypoint.sh .
 ENTRYPOINT ["/runner/entrypoint.sh"]
