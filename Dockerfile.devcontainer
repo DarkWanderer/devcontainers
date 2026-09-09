@@ -49,8 +49,12 @@ RUN dnf update -y && \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-RUN rustup-init -y \
-    && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt
+# Nightly alongside stable so nightly-only tooling (cargo-fuzz, -Z flags, unstable
+# rustfmt options) has a toolchain to run under; stable stays the default.
+RUN rustup-init -y --no-modify-path --default-toolchain stable \
+    && rustup component add rust-src llvm-tools-preview rust-analyzer clippy rustfmt \
+    && rustup toolchain install nightly --profile minimal \
+    && rustup component add --toolchain nightly rust-src llvm-tools-preview clippy rustfmt
 
 RUN cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort cargo-outdated cargo-sort clippy-sarif sarif-fmt \
     && rm -rf /usr/local/registry \
