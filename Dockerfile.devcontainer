@@ -7,6 +7,8 @@ COPY --chmod=644 config.toml /usr/local/config.toml
 
 VOLUME /target
 
+# USERNAME selects a local account and never carries credential data.
+# hadolint ignore=DL3064
 ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
@@ -22,7 +24,6 @@ RUN dnf update -y && \
     clang \
     cmake \
     curl \
-    dotnet-sdk-9.0 \
     dotnet-sdk-10.0 \
     gcc \
     gh \

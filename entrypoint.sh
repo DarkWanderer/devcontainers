@@ -1,14 +1,12 @@
 #!/bin/bash
 
-if [ -z ${REGISTRATION_TOKEN+x} ]
-then
-    echo -n REGISTRATION_TOKEN not set
-    exit 1
-fi
+set -Eeuo pipefail
 
-if [ -z ${GITHUB_ORG+x} ]
-then
-    echo -n GITHUB_ORG not set
+: "${REGISTRATION_TOKEN:?REGISTRATION_TOKEN must be set and non-empty}"
+: "${GITHUB_ORG:?GITHUB_ORG must be set and non-empty}"
+
+if (( EUID != 0 )); then
+    echo "runner entrypoint must run as root" >&2
     exit 1
 fi
 
@@ -30,10 +28,17 @@ export RUNNER_ALLOW_RUNASROOT=1
 # guest kernel has no bridge module, but at least the create call itself succeeds
 # instead of hard-failing the job before any step runs.)
 for path in /var/lib/containers /run /var/cache /var/tmp /etc/containers/networks; do
+    mkdir -p "$path"
     mount -t tmpfs tmpfs "$path"
 done
 
-/runner/config.sh --name "${RUNNER_NAME:-docker-runner}" --ephemeral --replace --unattended --url https://github.com/$GITHUB_ORG --token $REGISTRATION_TOKEN
+/runner/config.sh \
+    --name "${RUNNER_NAME:-docker-runner}" \
+    --ephemeral \
+    --replace \
+    --unattended \
+    --url "https://github.com/${GITHUB_ORG}" \
+    --token "${REGISTRATION_TOKEN}"
 
 # This script is PID 1 in the libkrun guest. A bash PID 1 does not forward
 # SIGTERM to its children, so on `podman stop` run.sh / Runner.Listener never
@@ -42,4 +47,3 @@ done
 # exec into tini (-g forwards signals to the whole child process group) so the
 # listener receives SIGTERM and deregisters cleanly.
 exec tini -g -- /runner/run.sh
-
