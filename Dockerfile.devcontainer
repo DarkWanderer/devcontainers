@@ -57,7 +57,12 @@ RUN rustup-init -y --no-modify-path --default-toolchain stable \
     && rustup toolchain install nightly --profile minimal \
     && rustup component add --toolchain nightly rust-src llvm-tools-preview clippy rustfmt
 
-RUN cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort cargo-outdated cargo-sort clippy-sarif sarif-fmt \
+# cargo-outdated pulls in openssl-sys via git2; linking it against the
+# system OpenSSL breaks on Fedora releases whose default OpenSSL is newer
+# than openssl-sys's supported set (e.g. OpenSSL 4.0 on Fedora 45+), so it
+# gets its own install with vendored-openssl rather than joining the others.
+RUN cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort clippy-sarif sarif-fmt \
+    && cargo install --locked --features vendored-openssl cargo-outdated \
     && rm -rf /usr/local/registry \
     && mkdir -p /usr/local/registry \
     && chmod 777 /usr/local/registry \
