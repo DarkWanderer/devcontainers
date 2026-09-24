@@ -1,4 +1,4 @@
-FROM fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+FROM fedora:45@sha256:aacbc26b38361ba0cb3d10f268da40b61b36aed6ed6fe5831a35871636bedb06
 LABEL maintainer="Oleg V. Kozlyuk <elquentaro@gmail.com>"
 LABEL repository="https://github.com/DarkWanderer/devcontainers"
 
@@ -17,6 +17,10 @@ RUN useradd --uid ${USER_UID} -m ${USERNAME} \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME}
 
+# perl is explicit rather than pulled in transitively: openssl-src's vendored
+# Configure (below, cargo-outdated's vendored-openssl build) hard-requires
+# perl-FindBin and friends, which Fedora ships as Recommends-only - exactly
+# what install_weak_deps=False here turns off.
 RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
     ca-certificates \
@@ -37,6 +41,7 @@ RUN dnf update -y && \
     nodejs \
     npm \
     openssl-devel \
+    perl \
     pkg-config \
     procps-ng \
     protobuf-compiler \
@@ -57,7 +62,12 @@ RUN rustup-init -y --no-modify-path --default-toolchain stable \
     && rustup toolchain install nightly --profile minimal \
     && rustup component add --toolchain nightly rust-src llvm-tools-preview clippy rustfmt
 
-RUN cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort cargo-outdated cargo-sort clippy-sarif sarif-fmt \
+# cargo-outdated pulls in openssl-sys via git2; linking it against the
+# system OpenSSL breaks on Fedora releases whose default OpenSSL is newer
+# than openssl-sys's supported set (e.g. OpenSSL 4.0 on Fedora 45+), so it
+# gets its own install with vendored-openssl rather than joining the others.
+RUN cargo install --locked cargo-audit cargo-bump cargo-edit cargo-llvm-cov cargo-sort clippy-sarif sarif-fmt \
+    && cargo install --locked --features vendored-openssl cargo-outdated \
     && rm -rf /usr/local/registry \
     && mkdir -p /usr/local/registry \
     && chmod 777 /usr/local/registry \
