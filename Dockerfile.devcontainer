@@ -17,6 +17,10 @@ RUN useradd --uid ${USER_UID} -m ${USERNAME} \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME}
 
+# perl is explicit rather than pulled in transitively: openssl-src's vendored
+# Configure (below, cargo-outdated's vendored-openssl build) hard-requires
+# perl-FindBin and friends, which Fedora ships as Recommends-only - exactly
+# what install_weak_deps=False here turns off.
 RUN dnf update -y && \
     dnf install -y --setopt=install_weak_deps=False \
     ca-certificates \
@@ -37,6 +41,7 @@ RUN dnf update -y && \
     nodejs \
     npm \
     openssl-devel \
+    perl \
     pkg-config \
     procps-ng \
     protobuf-compiler \
